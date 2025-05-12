@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Sign In Panel</title>
+    <style>
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background-color: #f0f2f5;
+          margin: 0;
+          padding: 40px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .card {
+          background-color: white;
+          padding: 30px 50px;
+          border-radius: 12px;
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+          text-align: center;
+          max-width: 400px;
+          width: 100%;
+        }
+
+        h2 {
+          color: #333;
+          margin-bottom: 20px;
+        }
+
+        .info-label {
+          margin: 20px 0 10px;
+          color: #666;
+        }
+
+        .button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin: 10px;
+          background: linear-gradient(to right, #4e54c8, #8f94fb);
+          border: none;
+          border-radius: 6px;
+          color: white;
+          font-size: 16px;
+          cursor: pointer;
+          transition: background 0.3s ease;
+        }
+
+        .button:hover {
+          background: linear-gradient(to right, #3e44a0, #787de5);
+        }
+
+        pre {
+          background: #eee;
+          padding: 15px;
+          border-radius: 8px;
+          text-align: left;
+          max-height: 200px;
+          overflow: auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Authentication Portal</h2>
+
+    <div id="login-state" class="info-label">Status: disconnected</div>
+
+    <button class="button" onclick="initiateLogin()">Sign In via Casdoor</button>
+    <button class="button" onclick="fetchUserDetails()">View Account Info</button>
+
+    <pre id="user-data">...</pre>
+</div>
+
+<script>
+    function initiateLogin() {
+      location.assign("/login");
+    }
+
+    function fetchCookieVal(key) {
+      const record = document.cookie.split("; ").find(e => e.startsWith(`${key}=`));
+      return record?.split("=")[1];
+    }
+
+    function updateLoginStatus() {
+      const token = fetchCookieVal("access_token");
+      const statusEl = document.getElementById("login-state");
+      if (token) {
+        statusEl.innerText = "Status: connected ✅";
+      } else {
+        statusEl.innerText = "Status: disconnected ❌";
+      }
+    }
+  async function fetchUserDetails() {
+  const authToken = fetchCookieVal("access_token");
+
+  if (!authToken) {
+    alert("Please sign in first.");
+    return;
+  }
+
+  try {
+    const reply = await fetch("/userinfo", {
+      headers: {
+        "Authorization": `Bearer ${authToken}`
+      }
+    });
+
+    const content = reply.ok
+      ? JSON.stringify(await reply.json(), null, 2)
+      : "Unable to retrieve account data";
+
+    document.getElementById("user-data").innerText = content;
+  } catch (e) {
+    document.getElementById("user-data").innerText = "Error fetching data";
+  }
+}
+    updateLoginStatus();
+</script>
+
+</body>
+</html>
